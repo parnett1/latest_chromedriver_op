@@ -3,16 +3,19 @@ import shutil
 import subprocess
 from functools import cache
 
+import ubelt as ub
 from logzero import logger
 
 CHROME_EXECUTABLE = "chrome.exe"
 
 
-def _get_program_files():
-    for env_name in ["ProgramW6432", "ProgramFiles(x86)"]:
-        folder = os.environ[env_name]
-        logger.debug(f"Searching in: {folder}")
+def _possible_chrome_parent_folders():
+    possible_folders = [os.environ.get(
+        i) for i in ["ProgramFiles(x86)", "ProgramW6432"]]
+    possible_folders.append(str(ub.Path.home()))
+    for folder in possible_folders:
         if folder:
+            logger.debug(f"Searching in: {folder}")
             yield folder
 
 
@@ -27,13 +30,14 @@ def get_path():
     in_path = shutil.which(CHROME_EXECUTABLE)
     if in_path:
         return in_path
-    for folder in _get_program_files():
+    for folder in _possible_chrome_parent_folders():
         for root, dirs, files in os.walk(folder):
             for filename in files:
                 if filename.casefold() == search_filename:
                     filepath = os.path.join(root, filename)
                     if _is_exe(filepath):
                         return filepath
+    logger.error("Google Chrome wasn't found in the usual locations")
     return None
 
 
