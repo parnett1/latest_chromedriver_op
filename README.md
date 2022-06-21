@@ -1,6 +1,6 @@
 # Windows Auto ChromeDriver
 
-"Windows Auto ChromeDriver" is a module for python scirpts in order to find the correct version of the ChromDriver depending on Google Chrome version.
+"Windows Auto ChromeDriver" is a module for python scirpts in order to find the correct version of the ChromeDriver depending on Google Chrome version.
 
 ## Purpose
 
