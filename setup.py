@@ -20,7 +20,7 @@ setuptools.setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 4 - Beta',
+        'Development Status :: 3 - Alpha',
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
@@ -32,7 +32,7 @@ setuptools.setup(
     ],
     python_requires='>=3',
     install_requires=['requests', 'logzero', 'ubelt'],
-    keywords='oracle windows client instantclient',
+    keywords='chromedriver windows',
     project_urls={
         # 'Documentation': 'https://packaging.python.org/tutorials/distributing-packages/',
         # 'Funding': 'https://donate.pypi.org',
