@@ -1,8 +1,10 @@
 import io
 import os
+import platform
 import re
 import subprocess
 import zipfile
+from functools import cache
 
 import requests
 import ubelt as ub
@@ -10,9 +12,31 @@ from logzero import logger
 
 from . import chrome_info
 
-WINDOWS_DRIVER = "chromedriver_win32.zip"
-DRIVER_FILENAME = "chromedriver.exe"
 VERSION_OUTPUT_RE = r".*?(\d+\.\d+\.\d+\.\d+).*"
+
+
+@cache
+def _get_driver_zipfile():
+    system_name = platform.system()
+    if system_name == 'Windows':
+        return "chromedriver_win32.zip"
+    if system_name == 'Linux':
+        return "chromedriver_linux64.zip"
+    if system_name == 'Darwin':
+        return "chromedriver_mac64.zip"
+    return None
+
+
+@cache
+def _get_driver_filename():
+    system_name = platform.system()
+    if system_name == 'Windows':
+        return "chromedriver.exe"
+    if system_name == 'Linux':
+        return "chromedriver"
+    if system_name == 'Darwin':
+        return "chromedriver"
+    return None
 
 
 def find_chromedriver_version(chrome_version):
@@ -28,8 +52,8 @@ def find_chromedriver_version(chrome_version):
 
 def download_chromedriver_zip(chromedriver_version):
     # Method from https://chromedriver.chromium.org/downloads/version-selection
-    url = f"https://chromedriver.storage.googleapis.com/{chromedriver_version}/{WINDOWS_DRIVER}"
-    logger.debug(f"Downloading: {chromedriver_version}/{WINDOWS_DRIVER}")
+    url = f"https://chromedriver.storage.googleapis.com/{chromedriver_version}/{_get_driver_zipfile()}"
+    logger.debug(f"Downloading: {chromedriver_version}/{_get_driver_zipfile()}")
     r = requests.get(url)
     data = r.content
     logger.info(f"Downloaded: {len(data)} bytes")
@@ -45,7 +69,7 @@ def extract_zip(zip_data, folder="."):
 
 def get_version(folder):
     version = ''
-    chromedriver_path = os.path.join(folder, DRIVER_FILENAME)
+    chromedriver_path = os.path.join(folder, _get_driver_filename())
     if not os.path.exists(chromedriver_path):
         return None
     output = subprocess.check_output('%s -v' % (chromedriver_path), shell=True)
