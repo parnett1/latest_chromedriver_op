@@ -1,11 +1,11 @@
 import setuptools
 import datetime
 
-with open("README.md", "r", enconding="utf-8") as fh:
+with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="auto-chromedriver",
+    name="latest-chromedriver",
     version=datetime.datetime.now().strftime("%Y.%m.%d"),
     author="Charalampos Gkikas",
     author_email="hargikas@gmail.com",
@@ -42,7 +42,7 @@ setuptools.setup(
     },
     entry_points={
         'console_scripts': [
-            'auto_chromedriver=auto_chromedriver:__main__',
+            'latest_chromedriver=latest_chromedriver:__main__',
         ],
     },
 )

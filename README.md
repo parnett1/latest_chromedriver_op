@@ -24,15 +24,15 @@ In order to install this module you need to have:
 Installation is pretty forward and it is done through pip
 
 ```
-pip install auto-chromedriver
+pip install latest-chromedriver
 ```
 
 A basic use can be achieved like:
 
 ```
-import auto_chromedriver
+import latest_chromedriver
 
-auto_chromedriver.safely_set_chromedriver_path()
+latest_chromedriver.safely_set_chromedriver_path()
 ```
 
 
