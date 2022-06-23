@@ -1,6 +1,6 @@
-# Windows Auto ChromeDriver
+# Auto ChromeDriver
 
-"Windows Auto ChromeDriver" is a module for python scirpts in order to find the correct version of the ChromeDriver depending on Google Chrome version.
+"Auto ChromeDriver" is a module for python scirpts in order to find the correct version of the ChromeDriver depending on Google Chrome version.
 
 ## Purpose
 
@@ -16,7 +16,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 In order to install this module you need to have:
 
-* A Windows Operating System
+* Google Chrome
 * Python >= 3
 
 ### Installing
@@ -24,7 +24,7 @@ In order to install this module you need to have:
 Installation is pretty forward and it is done through pip
 
 ```
-pip install windows-auto-chromedriver
+pip install auto-chromedriver
 ```
 
 A basic use can be achieved like:

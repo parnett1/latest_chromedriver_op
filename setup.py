@@ -1,18 +1,18 @@
 import setuptools
 import datetime
 
-with open("README.md", "r") as fh:
+with open("README.md", "r", enconding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="windows-auto-chromedriver",
+    name="auto-chromedriver",
     version=datetime.datetime.now().strftime("%Y.%m.%d"),
     author="Charalampos Gkikas",
     author_email="hargikas@gmail.com",
     description="A small package to find the correct chromedriver version in windows machines",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/hargikas/windows-auto-chromedriver/",
+    url="https://github.com/hargikas/auto-chromedriver/",
     packages=setuptools.find_packages(),
     license='MIT',
     classifiers=[
@@ -20,7 +20,7 @@ setuptools.setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
@@ -36,9 +36,9 @@ setuptools.setup(
     project_urls={
         # 'Documentation': 'https://packaging.python.org/tutorials/distributing-packages/',
         # 'Funding': 'https://donate.pypi.org',
-        'Say Thanks!': 'https://saythanks.io/to/hargikas%40gmail.com',
-        'Source': 'https://github.com/hargikas/windows-auto-chromedriver/',
-        'Tracker': 'https://github.com/hargikas/windows-auto-chromedriver/issues',
+        'Say Thanks!': 'https://saythanks.io/to/hargikas',
+        'Source': 'https://github.com/hargikas/auto-chromedriver/',
+        'Tracker': 'https://github.com/hargikas/auto-chromedriver/issues',
     },
     entry_points={
         'console_scripts': [
