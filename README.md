@@ -1,6 +1,6 @@
-# Auto ChromeDriver
+# Latest ChromeDriver
 
-"Auto ChromeDriver" is a module for python scirpts in order to find the correct version of the ChromeDriver depending on Google Chrome version.
+"Latest ChromeDriver" is a module for python scirpts in order to find the correct version of the ChromeDriver depending on Google Chrome version.
 
 ## Purpose
 
