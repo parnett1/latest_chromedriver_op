@@ -2,9 +2,10 @@ import io
 import os
 import platform
 import re
+import stat
 import subprocess
 import zipfile
-from functools import cache
+from functools import lru_cache
 
 import requests
 import ubelt as ub
@@ -15,7 +16,7 @@ from . import chrome_info
 VERSION_OUTPUT_RE = r".*?(\d+\.\d+\.\d+\.\d+).*"
 
 
-@cache
+@lru_cache(maxsize=None)
 def _get_driver_zipfile():
     system_name = platform.system()
     if system_name == 'Windows':
@@ -27,7 +28,7 @@ def _get_driver_zipfile():
     return None
 
 
-@cache
+@lru_cache(maxsize=None)
 def _get_driver_filename():
     system_name = platform.system()
     if system_name == 'Windows':
@@ -53,7 +54,8 @@ def find_chromedriver_version(chrome_version):
 def download_chromedriver_zip(chromedriver_version):
     # Method from https://chromedriver.chromium.org/downloads/version-selection
     url = f"https://chromedriver.storage.googleapis.com/{chromedriver_version}/{_get_driver_zipfile()}"
-    logger.debug(f"Downloading: {chromedriver_version}/{_get_driver_zipfile()}")
+    logger.debug(
+        f"Downloading: {chromedriver_version}/{_get_driver_zipfile()}")
     r = requests.get(url)
     data = r.content
     logger.info(f"Downloaded: {len(data)} bytes")
@@ -64,6 +66,9 @@ def extract_zip(zip_data, folder="."):
     with io.BytesIO(zip_data) as f:
         with zipfile.ZipFile(file=f, mode='r') as zip_ref:
             zip_ref.extractall(folder)
+    chromedriver_path = os.path.join(folder, _get_driver_filename())
+    os.chmod(chromedriver_path, mode=stat.S_IXUSR |
+             stat.S_IXGRP | stat.S_IXOTH)
     logger.debug(f"Extracted executable into: {folder}")
 
 

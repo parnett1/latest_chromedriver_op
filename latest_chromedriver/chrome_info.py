@@ -3,7 +3,7 @@ import platform
 import re
 import shutil
 import subprocess
-from functools import cache
+from functools import lru_cache
 
 import ubelt as ub
 from logzero import logger
@@ -11,7 +11,7 @@ from logzero import logger
 VERSION_OUTPUT_RE = r".*?(\d+\.\d+\.\d+\.\d+).*"
 
 
-@cache
+@lru_cache(maxsize=None)
 def _get_chrome_executable():
     system_name = platform.system()
     if system_name == 'Windows':
@@ -35,7 +35,7 @@ def _is_exe(fpath):
     return os.path.exists(fpath) and os.access(fpath, os.X_OK) and os.path.isfile(fpath)
 
 
-@cache
+@lru_cache(maxsize=None)
 def get_path():
     logger.debug("Searching for Google Chrome installations...")
     system_name = platform.system()
@@ -56,7 +56,7 @@ def get_path():
     return None
 
 
-@cache
+@lru_cache(maxsize=None)
 def get_version():
     version = None
     system_name = platform.system()
