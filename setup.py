@@ -31,7 +31,7 @@ setuptools.setup(
         "Operating System :: Microsoft :: Windows",
     ],
     python_requires='>=3',
-    install_requires=['requests', 'logzero', 'ubelt'],
+    install_requires=['requests', 'logzero', 'ubelt', 'py-cpuinfo'],
     keywords='chromedriver windows',
     project_urls={
         # 'Documentation': 'https://packaging.python.org/tutorials/distributing-packages/',

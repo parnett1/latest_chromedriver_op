@@ -41,6 +41,7 @@ latest_chromedriver.safely_set_chromedriver_path()
 * [logzero](https://logzero.readthedocs.io/en/latest/) - A simple library for easy logging (could change it to standard logging module)
 * [requests](https://requests.readthedocs.io/en/latest/) - Requests is an elegant and simple HTTP library for Python, built for human beings
 * [ubelt](https://ubelt.readthedocs.io/en/latest/ubelt.html) - A “utility belt” of commonly needed utility and helper functions
+* [py-cpuinfo](https://github.com/workhorsy/py-cpuinfo) - Gets CPU info with pure Python
 
 ## Contributing
 
