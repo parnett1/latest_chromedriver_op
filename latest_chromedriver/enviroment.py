@@ -1,8 +1,15 @@
 import os
 
+import cpuinfo
 from logzero import logger
 
 from . import download_driver
+
+
+def get_cpu_arch():
+    manufacturer = cpuinfo.get_cpu_info().get('brand_raw')
+    arch = 'arm' if 'm1' in manufacturer.lower() else 'x86_64'
+    return arch
 
 
 def _clean_and_add_env_path(add_path):

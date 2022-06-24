@@ -11,8 +11,7 @@ import requests
 import ubelt as ub
 from logzero import logger
 
-from . import chrome_info
-from . import version
+from . import chrome_info, enviroment, version
 
 
 @lru_cache(maxsize=None)
@@ -23,7 +22,10 @@ def _get_driver_zipfile():
     if system_name == 'Linux':
         return "chromedriver_linux64.zip"
     if system_name == 'Darwin':
-        return "chromedriver_mac64.zip"
+        if enviroment.get_cpu_arch() == 'arm':
+            return "chromedriver_mac64_m1.zip"
+        else:
+            return "chromedriver_mac64.zip"
     return None
 
 
