@@ -85,7 +85,7 @@ def get_version(folder):
 
 
 def download_only_if_needed():
-    dpath = ub.ensure_app_cache_dir('auto_chromedriver')
+    dpath = ub.ensure_app_cache_dir('latest_chromedriver')
 
     cached_version = get_version(dpath)
     version = chrome_info.get_version()
