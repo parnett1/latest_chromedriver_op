@@ -14,7 +14,7 @@ from logzero import logger
 from . import chrome_info, enviroment, version
 
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=1)
 def _get_driver_zipfile():
     system_name = platform.system()
     if system_name == 'Windows':
@@ -29,7 +29,7 @@ def _get_driver_zipfile():
     return None
 
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=1)
 def _get_driver_filename():
     system_name = platform.system()
     if system_name == 'Windows':

@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache
 
 import cpuinfo
 from logzero import logger
@@ -6,6 +7,7 @@ from logzero import logger
 from . import download_driver
 
 
+@lru_cache(maxsize=1)
 def get_cpu_arch():
     manufacturer = cpuinfo.get_cpu_info().get('brand_raw')
     arch = 'arm' if 'm1' in manufacturer.lower() else 'x86_64'

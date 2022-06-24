@@ -11,7 +11,7 @@ from logzero import logger
 from . import version
 
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=1)
 def _get_chrome_executable():
     system_name = platform.system()
     if system_name == 'Windows':
@@ -35,7 +35,7 @@ def _is_exe(fpath):
     return os.path.exists(fpath) and os.access(fpath, os.X_OK) and os.path.isfile(fpath)
 
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=1)
 def get_path():
     logger.debug("Searching for Google Chrome installations...")
     system_name = platform.system()
@@ -56,7 +56,7 @@ def get_path():
     return None
 
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=1)
 def get_version():
     system_name = platform.system()
     chrome_path = get_path()
