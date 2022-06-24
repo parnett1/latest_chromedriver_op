@@ -12,8 +12,7 @@ import ubelt as ub
 from logzero import logger
 
 from . import chrome_info
-
-VERSION_OUTPUT_RE = r".*?(\d+\.\d+\.\d+\.\d+).*"
+from . import version
 
 
 @lru_cache(maxsize=None)
@@ -73,16 +72,14 @@ def extract_zip(zip_data, folder="."):
 
 
 def get_version(folder):
-    version = ''
     chromedriver_path = os.path.join(folder, _get_driver_filename())
     if not os.path.exists(chromedriver_path):
         return None
     output = subprocess.check_output('%s -v' % (chromedriver_path), shell=True)
     output_str = output.decode(encoding='ascii')
-    for match in re.finditer(VERSION_OUTPUT_RE, output_str, re.MULTILINE):
-        version = match.group(1)
-    logger.debug(f"Downloaded ChromeDriver Version: {version}")
-    return version
+    version_str = version.extract_version(output_str)
+    logger.debug(f"Downloaded ChromeDriver Version: {version_str}")
+    return version_str
 
 
 def download_only_if_needed():

@@ -8,7 +8,7 @@ from functools import lru_cache
 import ubelt as ub
 from logzero import logger
 
-VERSION_OUTPUT_RE = r".*?(\d+\.\d+\.\d+\.\d+).*"
+from . import version
 
 
 @lru_cache(maxsize=None)
@@ -58,7 +58,6 @@ def get_path():
 
 @lru_cache(maxsize=None)
 def get_version():
-    version = None
     system_name = platform.system()
     chrome_path = get_path()
     if system_name == 'Windows':
@@ -68,7 +67,6 @@ def get_version():
         output = subprocess.check_output(
             '%s --version' % (chrome_path), shell=True)
     output_str = output.decode(encoding='ascii')
-    for match in re.finditer(VERSION_OUTPUT_RE, output_str, re.MULTILINE):
-        version = match.group(1)
-    logger.debug(f"Google Chrome Version: {version}")
-    return version
+    version_str = version.extract_version(output_str)
+    logger.debug(f"Google Chrome Version: {version_str}")
+    return version_str
