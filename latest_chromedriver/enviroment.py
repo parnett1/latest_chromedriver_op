@@ -1,4 +1,5 @@
 import os
+import tempfile
 from functools import lru_cache
 
 import cpuinfo
@@ -14,23 +15,50 @@ def get_cpu_arch():
     return arch
 
 
+def is_fs_case_sensitive():
+    if not hasattr(is_fs_case_sensitive, 'case_sensitive'):
+        with tempfile.NamedTemporaryFile(prefix='TmP') as tmp_file:
+            setattr(is_fs_case_sensitive,
+                    'case_sensitive',
+                    not os.path.exists(tmp_file.name.lower()))
+    return(is_fs_case_sensitive.case_sensitive)
+
+
 def _clean_and_add_env_path(add_path):
+    # Clean the already defined path 
+    # Remove multiple identincal entries
     cleaned_path = []
-    # Clean the already defined path
     abs_path = [os.path.abspath(x)
                 for x in os.environ['PATH'].split(os.pathsep)]
 
     for c_path in abs_path:
-        if (c_path and (c_path.casefold() not in [x.casefold() for x in cleaned_path])):
-            cleaned_path.append(c_path)
+        if c_path:
+            if is_fs_case_sensitive():
+                case_path = c_path
+                checked_paths = cleaned_path
+            else:
+                case_path = c_path.casefold()
+                checked_paths = [x.casefold() for x in cleaned_path]
 
-    # Add the new paths in the start of the path
+            if case_path not in checked_paths:
+                cleaned_path.append(c_path)
+
+    # Add the new path in the start of the enviroment $PATH
     if add_path:
         add_path = os.path.abspath(add_path)
-        add_path_case = add_path.casefold()
+        if is_fs_case_sensitive():
+            add_path_case = add_path
+        else:
+            add_path_case = add_path.casefold()
         for c_path in cleaned_path[:]:
-            if add_path_case == c_path.casefold():
+            if is_fs_case_sensitive():
+                case_path = c_path
+            else:
+                case_path = c_path.casefold()
+
+            if add_path_case == case_path:
                 cleaned_path.remove(c_path)
+
         cleaned_path.insert(0, add_path)
 
     os.environ['PATH'] = os.pathsep.join(cleaned_path)
