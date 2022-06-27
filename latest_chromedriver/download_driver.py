@@ -77,7 +77,7 @@ def get_version(folder):
     chromedriver_path = os.path.join(folder, _get_driver_filename())
     if not os.path.exists(chromedriver_path):
         return None
-    output = subprocess.check_output('%s -v' % (chromedriver_path), shell=True)
+    output = subprocess.check_output('"%s" -v' % (chromedriver_path), shell=True)
     output_str = output.decode(encoding='ascii')
     version_str = version.extract_version(output_str)
     logger.debug(f"Downloaded ChromeDriver Version: {version_str}")

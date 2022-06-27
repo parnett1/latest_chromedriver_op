@@ -103,7 +103,7 @@ def get_version():
             'powershell -command "&{(Get-Item \'%s\').VersionInfo.ProductVersion}"' % (chrome_path), shell=True)
     else:
         output = subprocess.check_output(
-            '%s --version' % (chrome_path), shell=True)
+            '"%s" --version' % (chrome_path), shell=True)
     output_str = output.decode(encoding='ascii')
     version_str = version.extract_version(output_str)
     logger.debug(f"Google Chrome Version: {version_str}")
