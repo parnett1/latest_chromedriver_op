@@ -20,12 +20,12 @@ def is_fs_case_sensitive():
         with tempfile.NamedTemporaryFile(prefix='TmP') as tmp_file:
             setattr(is_fs_case_sensitive,
                     'case_sensitive',
-                    not os.path.exists(tmp_file.name.lower()))
+                    not os.path.exists(tmp_file.name.casefold()))
     return(is_fs_case_sensitive.case_sensitive)
 
 
 def _clean_and_add_env_path(add_path):
-    # Clean the already defined path 
+    # Clean the already defined path
     # Remove multiple identincal entries
     cleaned_path = []
     abs_path = [os.path.abspath(x)
@@ -64,7 +64,9 @@ def _clean_and_add_env_path(add_path):
     os.environ['PATH'] = os.pathsep.join(cleaned_path)
 
 
-def safely_set_chromedriver_path():
-    chromedriver_path = download_driver.download_only_if_needed()
-    logger.debug(f"Adding {chromedriver_path} to PATH")
-    _clean_and_add_env_path(chromedriver_path)
+def safely_set_chromedriver_path(**kwargs):
+    chromedriver_path = download_driver.download_only_if_needed(chrome_path=kwargs.get(
+        'chrome_path'), chromedriver_folder=kwargs.get('chromedriver_folder'))
+    if chromedriver_path:
+        logger.debug(f"Adding {chromedriver_path} to PATH")
+        _clean_and_add_env_path(chromedriver_path)

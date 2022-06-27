@@ -94,17 +94,26 @@ def get_path():
     return None
 
 
-@lru_cache(maxsize=1)
-def get_version():
+@lru_cache(maxsize=None)
+def get_version(chrome_path=None):
     system_name = platform.system()
-    chrome_path = get_path()
-    if system_name == 'Windows':
-        output = subprocess.check_output(
-            'powershell -command "&{(Get-Item \'%s\').VersionInfo.ProductVersion}"' % (chrome_path), shell=True)
+    if chrome_path:
+        if not _is_exe(chrome_path):
+            logger.error(
+                f"{chrome_path} is not a valid Google Chrome executable.")
+            return None
     else:
-        output = subprocess.check_output(
-            '"%s" --version' % (chrome_path), shell=True)
-    output_str = output.decode(encoding='ascii')
-    version_str = version.extract_version(output_str)
-    logger.debug(f"Google Chrome Version: {version_str}")
+        chrome_path = get_path()
+
+    version_str = None
+    if chrome_path:
+        if system_name == 'Windows':
+            output = subprocess.check_output(
+                'powershell -command "&{(Get-Item \'%s\').VersionInfo.ProductVersion}"' % (chrome_path), shell=True)
+        else:
+            output = subprocess.check_output(
+                '"%s" --version' % (chrome_path), shell=True)
+        output_str = output.decode(encoding='ascii')
+        version_str = version.extract_version(output_str)
+        logger.debug(f"Google Chrome Version: {version_str}")
     return version_str

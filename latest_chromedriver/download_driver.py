@@ -64,11 +64,14 @@ def download_chromedriver_zip(chromedriver_version):
 
 
 def extract_zip(zip_data, folder="."):
+    chromedriver_path = os.path.join(folder, _get_driver_filename())
+    if os.path.exists(chromedriver_path):
+        os.remove(chromedriver_path)
+
     with io.BytesIO(zip_data) as f:
         with zipfile.ZipFile(file=f, mode='r') as zip_ref:
             zip_ref.extractall(folder)
-    chromedriver_path = os.path.join(folder, _get_driver_filename())
-    os.chmod(chromedriver_path, mode=stat.S_IXUSR |
+    os.chmod(chromedriver_path, mode=stat.S_IRWXU |
              stat.S_IXGRP | stat.S_IXOTH)
     logger.debug(f"Extracted executable into: {folder}")
 
@@ -77,22 +80,27 @@ def get_version(folder):
     chromedriver_path = os.path.join(folder, _get_driver_filename())
     if not os.path.exists(chromedriver_path):
         return None
-    output = subprocess.check_output('"%s" -v' % (chromedriver_path), shell=True)
+    output = subprocess.check_output(
+        '"%s" -v' % (chromedriver_path), shell=True)
     output_str = output.decode(encoding='ascii')
     version_str = version.extract_version(output_str)
     logger.debug(f"Downloaded ChromeDriver Version: {version_str}")
     return version_str
 
 
-def download_only_if_needed():
-    dpath = ub.ensure_app_cache_dir('latest_chromedriver')
+def download_only_if_needed(chrome_path=None, chromedriver_folder=None):
+    if chromedriver_folder:
+        dpath = chromedriver_folder
+    else:
+        dpath = ub.ensure_app_cache_dir('latest_chromedriver')
 
     cached_version = get_version(dpath)
-    version = chrome_info.get_version()
+    version = chrome_info.get_version(chrome_path=chrome_path)
 
-    online_version = find_chromedriver_version(version)
-    if (not cached_version) or (online_version != cached_version):
-        zip_data = download_chromedriver_zip(online_version)
-        extract_zip(zip_data, dpath)
+    if version:
+        online_version = find_chromedriver_version(version)
+        if (not cached_version) or (online_version != cached_version):
+            zip_data = download_chromedriver_zip(online_version)
+            extract_zip(zip_data, dpath)
 
     return dpath
