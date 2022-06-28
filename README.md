@@ -1,6 +1,6 @@
 # Latest ChromeDriver
 
-"Latest ChromeDriver" is a module for python scripts in order to find the correct version of the ChromeDriver depending on Google Chrome version.
+The `latest_chromedriver` is a module for python scripts in order to find the correct version of the ChromeDriver depending on Google Chrome version.
 
 ## Purpose
 
@@ -10,7 +10,11 @@ This module is intended for use in scripts that are running on different client 
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine on a windows system.
+These instructions will get you a copy of the project up and running on your local. Currently there are three systems supported:
+
+* [Windows](https://en.wikipedia.org/wiki/Microsoft_Windows)
+* [Linux](https://en.wikipedia.org/wiki/Linux)
+* [Darwin](https://en.wikipedia.org/wiki/Darwin_(operating_system))
 
 ### Example Usage
 
