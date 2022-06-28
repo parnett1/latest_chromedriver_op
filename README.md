@@ -1,6 +1,6 @@
 # Latest ChromeDriver
 
-"Latest ChromeDriver" is a module for python scirpts in order to find the correct version of the ChromeDriver depending on Google Chrome version.
+"Latest ChromeDriver" is a module for python scripts in order to find the correct version of the ChromeDriver depending on Google Chrome version.
 
 ## Purpose
 
@@ -12,6 +12,30 @@ This module is intended for use in scripts that are running on different client 
 
 These instructions will get you a copy of the project up and running on your local machine on a windows system.
 
+### Example Usage
+
+```python
+import latest_chromedriver
+
+latest_chromedriver.safely_set_chromedriver_path()
+```
+
+If `Google Chrome` is installed in a different location:
+
+```python
+import latest_chromedriver
+
+latest_chromedriver.safely_set_chromedriver_path(chrome_path='/adhoc/locatation/googe-chrome')
+```
+
+If `chromedriver` needs to be installed in a different location:
+
+```python
+import latest_chromedriver
+
+latest_chromedriver.safely_set_chromedriver_path(chromedriver_folder='/tmp')
+```
+
 ### Prerequisites
 
 In order to install this module you need to have:
@@ -19,22 +43,13 @@ In order to install this module you need to have:
 * Google Chrome
 * Python >= 3
 
-### Installing
+### Installation
 
-Installation is pretty forward and it is done through pip
+Install `latest-chromedriver` with [pip](https://pip.pypa.io)
 
+```shell
+python -m pip install latest-chromedriver
 ```
-pip install latest-chromedriver
-```
-
-A basic use can be achieved like:
-
-```
-import latest_chromedriver
-
-latest_chromedriver.safely_set_chromedriver_path()
-```
-
 
 ## Built With
 
