@@ -16,3 +16,4 @@ autopep8 = "*"
 twine = "*"
 setuptools = "*"
 wheel = "*"
+"zest.releaser" = {extras = ["recommended"], version = "*"}
