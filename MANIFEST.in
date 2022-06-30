@@ -1,0 +1,4 @@
+include *.bat
+include *.lock
+include *.md
+include Pipfile
