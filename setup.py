@@ -1,14 +1,14 @@
 import setuptools
 import datetime
 
-version = '1.1'
+__version__ = '2022.12.09'
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="latest-chromedriver",
-    version=version,
+    version=__version__,
     author="Charalampos Gkikas",
     author_email="hargikas@gmail.com",
     description="A small package to find the correct chromedriver version in windows machines",
