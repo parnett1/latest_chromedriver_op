@@ -23,7 +23,7 @@ def new_version():
             data = data.replace(data[start:end], updated_version)
 
         if changed:
-            logger.info(f"Writing: {filename}")
+            logger.info("Writing: %s", filename)
             with io.open(filename, 'wt', encoding='utf-8') as f_obj:
                 f_obj.write(data)
 

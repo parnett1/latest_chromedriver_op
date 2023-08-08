@@ -1,3 +1,5 @@
+"""Version of the module"""
+
 import re
 
 VERSION_OUTPUT_RE = r".*?(\d+\.\d+\.\d+\.\d+).*"

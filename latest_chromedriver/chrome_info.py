@@ -1,6 +1,7 @@
+"""A Module to search and find the chrome executable."""
+
 import os
 import platform
-import re
 import shutil
 import subprocess
 from functools import lru_cache
@@ -30,7 +31,7 @@ def _windows_program_locations():
     possible_folders.append(str(ub.Path.home()))
     for folder in possible_folders:
         if folder:
-            logger.debug(f"Searching in: {folder}")
+            logger.debug("Searching in: %s", folder)
             yield folder
 
 
@@ -38,7 +39,7 @@ def _darwin_applications():
     possible_folders = ['/Applications', '/']
     for folder in possible_folders:
         if folder:
-            logger.debug(f"Searching in: {folder}")
+            logger.debug("Searching in: %s", folder)
             yield folder
 
 
@@ -52,7 +53,7 @@ def _find_chrome_in_subfolders(folder):
     else:
         search_filename = _get_chrome_executable().casefold().strip()
 
-    for root, dirs, files in os.walk(folder):
+    for root, _dirs, files in os.walk(folder):
         for filename in files:
             if enviroment.is_fs_case_sensitive():
                 case_filename = filename
@@ -67,6 +68,7 @@ def _find_chrome_in_subfolders(folder):
 
 @lru_cache(maxsize=1)
 def get_path():
+    """Get the path of a Google Chrome installation."""
     logger.debug("Searching for Google Chrome installations...")
     system_name = platform.system()
 
@@ -96,11 +98,12 @@ def get_path():
 
 @lru_cache(maxsize=None)
 def get_version(chrome_path=None):
+    """Get the version of a Google Chrome Executable"""
     system_name = platform.system()
     if chrome_path:
         if not _is_exe(chrome_path):
             logger.error(
-                f"{chrome_path} is not a valid Google Chrome executable.")
+                "%s is not a valid Google Chrome executable.", chrome_path)
             return None
     else:
         chrome_path = get_path()
@@ -109,11 +112,29 @@ def get_version(chrome_path=None):
     if chrome_path:
         if system_name == 'Windows':
             output = subprocess.check_output(
-                'powershell -command "&{(Get-Item \'%s\').VersionInfo.ProductVersion}"' % (chrome_path), shell=True)
+                'powershell -command "&{(Get-Item \'%s\').VersionInfo.ProductVersion}"' % (
+                    chrome_path),
+                shell=True)
         else:
             output = subprocess.check_output(
-                '"%s" --version' % (chrome_path), shell=True)
+                f'"{chrome_path}" --version', shell=True)
         output_str = output.decode(encoding='ascii')
         version_str = version.extract_version(output_str)
-        logger.debug(f"Google Chrome Version: {version_str}")
+        logger.debug("Google Chrome Version: %s", version_str)
     return version_str
+
+
+@lru_cache(maxsize=None)
+def get_architecture(chrome_path=None):
+    """Get the arcitecture (32bit or 63bit) of the Google Chrome executable."""
+    if chrome_path:
+        if not _is_exe(chrome_path):
+            logger.error(
+                "%s is not a valid Google Chrome executable.", chrome_path)
+            return None
+    else:
+        chrome_path = get_path()
+
+    (bits, _linkage) = platform.architecture(executable=chrome_path)
+    logger.debug("Google Chrome is a %s executable", bits)
+    return bits

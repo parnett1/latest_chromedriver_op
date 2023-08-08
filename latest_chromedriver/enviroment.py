@@ -1,3 +1,4 @@
+"""Usefull tools to set the enviroment"""
 import os
 import tempfile
 from functools import lru_cache
@@ -10,18 +11,20 @@ from . import download_driver
 
 @lru_cache(maxsize=1)
 def get_cpu_arch():
+    """Try to guess what cpu architecture we are running on"""
     manufacturer = cpuinfo.get_cpu_info().get('brand_raw')
     arch = 'arm' if 'm1' in manufacturer.lower() else 'x86_64'
     return arch
 
 
 def is_fs_case_sensitive():
+    """Is the filesystem case sensitive"""
     if not hasattr(is_fs_case_sensitive, 'case_sensitive'):
         with tempfile.NamedTemporaryFile(prefix='TmP') as tmp_file:
             setattr(is_fs_case_sensitive,
                     'case_sensitive',
                     not os.path.exists(tmp_file.name.casefold()))
-    return(is_fs_case_sensitive.case_sensitive)
+    return is_fs_case_sensitive.case_sensitive
 
 
 def _clean_and_add_env_path(add_path):
@@ -65,8 +68,9 @@ def _clean_and_add_env_path(add_path):
 
 
 def safely_set_chromedriver_path(**kwargs):
+    """Manipulate the enviroment PATH to include the chromedriver folder"""
     chromedriver_path = download_driver.download_only_if_needed(chrome_path=kwargs.get(
         'chrome_path'), chromedriver_folder=kwargs.get('chromedriver_folder'))
     if chromedriver_path:
-        logger.debug(f"Adding {chromedriver_path} to PATH")
+        logger.debug("Adding %s to PATH", chromedriver_path)
         _clean_and_add_env_path(chromedriver_path)

@@ -1,13 +1,14 @@
+"""The main module functionality, downloading the Google Chromedriver"""
+
 import io
 import os
 import platform
-import re
+import shutil
 import stat
 import subprocess
+import sys
 import zipfile
 from functools import lru_cache
-import shutil
-import sys
 
 import requests
 import ubelt as ub
@@ -16,9 +17,11 @@ from logzero import logger
 from . import chrome_info, enviroment, version
 
 CFT_JSON_ENDPOINT = "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json"
+HTTP_TIMEOUT = 120
 
 
 def move_to_root_folder(root_path, cur_path):
+    """Flatten a directory structure to root path"""
     for filename in os.listdir(cur_path):
         if os.path.isfile(os.path.join(cur_path, filename)):
             shutil.move(os.path.join(cur_path, filename),
@@ -33,9 +36,11 @@ def move_to_root_folder(root_path, cur_path):
 
 
 @lru_cache(maxsize=1)
-def _get_system_platform():
+def _get_system_platform(chrome_bits):
     system_name = platform.system()
     if system_name == 'Windows':
+        if '64' in chrome_bits:
+            return "win64"
         return "win32"
     if system_name == 'Linux':
         return "linux64"
@@ -74,59 +79,82 @@ def _get_driver_filename():
     return None
 
 
-def get_chromedriver_version_CfT(chrome_version, platform_system):
+def get_chromedriver_version_cft(chrome_version, platform_system):
+    """Find which is the latest chromedriver using 
+    the Chrome for Testing availability JSON endpoints."""
     selected_version = None
     selected_url = None
-    max_minor_version = -1
-    base_chrome_version = '.'.join(chrome_version.split('.')[:-1])
-    r = requests.get(CFT_JSON_ENDPOINT)
+    chrome_version_list = [int(x) for x in chrome_version.split('.')]
+    max_version_size = max([len(x) for x in chrome_version.split('.')])
+    order_of_score = 10**max_version_size
+    #max_eligible_version = [-1 for _x in range(chrome_version_list)]
+    max_score = float('-inf')
+
+    r = requests.get(CFT_JSON_ENDPOINT, timeout=HTTP_TIMEOUT)
     data = r.json()
     for item in data["versions"]:
-        base_item_version = '.'.join(item["version"].split('.')[:-1])
-        if base_item_version == base_chrome_version:
+        item_version_list = [int(x) for x in item["version"].split('.')]
+
+        compatibility_score = 0
+        max_magnitude_size = len(chrome_version_list)
+        for i in range(max_magnitude_size):
+            magnitude_size = order_of_score**(max_magnitude_size - i)
+            if item_version_list[i] == chrome_version_list[i]:
+                compatibility_score += magnitude_size
+            elif item_version_list[i] < chrome_version_list[i]:
+                version_mismatch = int(
+                    (1.0 - (item_version_list[i]/chrome_version_list[i]))*magnitude_size)
+                compatibility_score += magnitude_size - version_mismatch
+            else:
+                compatibility_score -= magnitude_size
+
+        if compatibility_score > max_score:
             if "chromedriver" in item["downloads"]:
-                minor_version = int(item["version"].split('.')[-1])
-                if minor_version > max_minor_version:
-                    for download in item["downloads"]["chromedriver"]:
-                        if download["platform"] == platform_system:
-                            selected_version = item["version"]
-                            selected_url = download["url"]
+                for download in item["downloads"]["chromedriver"]:
+                    if download["platform"] == platform_system:
+                        max_score = compatibility_score
+                        selected_version = item["version"]
+                        selected_url = download["url"]
+    logger.info("ChromeDriver version needed: %s", selected_version)
     return (selected_version, selected_url)
 
 
-def download_chromedriver_CfT(url):
-    # Method from https://chromedriver.chromium.org/downloads/version-selection
-    logger.debug(
-        f"Downloading: {url}")
-    r = requests.get(url)
-    data = r.content
-    logger.info(f"Downloaded: {len(data)} bytes")
+def download_chromedriver_cft(url):
+    """Download the latest chromedriver based on the url provided"""
+    logger.debug("Downloading: %s", url)
+    reponse = requests.get(url, timeout=HTTP_TIMEOUT)
+    data = reponse.content
+    logger.info("Downloaded: %d bytes", len(data))
     return data
 
 
 def find_chromedriver_version_114(chrome_version):
+    """Find which is the latest chromedriver using the old (pre 115) method"""
     # Method from https://chromedriver.chromium.org/downloads/version-selection
-    # Take the Chrome version number, remove the last part, and append the result to URL "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_"
+    # Take the Chrome version number, remove the last part, and append the
+    # result to URL "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_"
     url_version = '.'.join(chrome_version.split('.')[:-1])
     url = f"https://chromedriver.storage.googleapis.com/LATEST_RELEASE_{url_version}"
-    r = requests.get(url)
-    data = r.text.strip()
-    logger.info(f"ChromeDriver version needed: {data}")
+    response = requests.get(url, timeout=HTTP_TIMEOUT)
+    data = response.text.strip()
+    logger.info("ChromeDriver version needed: %s", data)
     return data
 
 
 def download_chromedriver_zip_114(chromedriver_version):
+    """Download the latest chromedriver using the old (pre 115) method"""
     # Method from https://chromedriver.chromium.org/downloads/version-selection
-    url = f"https://chromedriver.storage.googleapis.com/{chromedriver_version}/{_get_driver_zipfile()}"
-    logger.debug(
-        f"Downloading: {chromedriver_version}/{_get_driver_zipfile()}")
-    r = requests.get(url)
-    data = r.content
-    logger.info(f"Downloaded: {len(data)} bytes")
+    zip_f = _get_driver_zipfile()
+    url = f"https://chromedriver.storage.googleapis.com/{chromedriver_version}/{zip_f}"
+    logger.debug("Downloading: %s/%s", chromedriver_version, zip_f)
+    response = requests.get(url, timeout=HTTP_TIMEOUT)
+    data = response.content
+    logger.info("Downloaded: %d bytes", len(data))
     return data
 
 
 def extract_zip(zip_data, folder="."):
+    """Clean the target folder and rxtract all zip data to that folder"""
     chromedriver_path = os.path.join(folder, _get_driver_filename())
     if os.path.exists(chromedriver_path):
         os.remove(chromedriver_path)
@@ -139,25 +167,26 @@ def extract_zip(zip_data, folder="."):
         cur_path = os.path.join(folder, filename)
         if os.path.isdir(cur_path):
             move_to_root_folder(folder, cur_path)
-            
+
     os.chmod(chromedriver_path, mode=stat.S_IRWXU |
              stat.S_IXGRP | stat.S_IXOTH)
-    logger.debug(f"Extracted executable into: {folder}")
+    logger.debug("Extracted executable into: %s", folder)
 
 
 def get_version(folder):
+    """Get the chromedriver version"""
     chromedriver_path = os.path.join(folder, _get_driver_filename())
     if not os.path.exists(chromedriver_path):
         return None
-    output = subprocess.check_output(
-        '"%s" -v' % (chromedriver_path), shell=True)
+    output = subprocess.check_output(f'"{chromedriver_path}" -v', shell=True)
     output_str = output.decode(encoding='ascii')
     version_str = version.extract_version(output_str)
-    logger.debug(f"Downloaded ChromeDriver Version: {version_str}")
+    logger.debug("Downloaded ChromeDriver Version: %s", version_str)
     return version_str
 
 
 def download_only_if_needed(chrome_path=None, chromedriver_folder=None):
+    """Check if there is a chromedriver in pathm and download new if needed"""
     if chromedriver_folder:
         dpath = chromedriver_folder
     else:
@@ -165,6 +194,7 @@ def download_only_if_needed(chrome_path=None, chromedriver_folder=None):
 
     cached_version = get_version(dpath)
     c_version = chrome_info.get_version(chrome_path=chrome_path)
+    c_bits = chrome_info.get_architecture(chrome_path)
 
     if c_version:
         major_version = int(c_version.split('.')[0])
@@ -174,10 +204,10 @@ def download_only_if_needed(chrome_path=None, chromedriver_folder=None):
                 zip_data = download_chromedriver_zip_114(online_version)
                 extract_zip(zip_data, dpath)
         else:
-            (online_version, url) = get_chromedriver_version_CfT(
-                c_version, _get_system_platform())
+            (online_version, url) = get_chromedriver_version_cft(
+                c_version, _get_system_platform(c_bits))
             if (not cached_version) or (online_version != cached_version):
-                zip_data = download_chromedriver_CfT(url)
+                zip_data = download_chromedriver_cft(url)
                 extract_zip(zip_data, dpath)
 
     return dpath
