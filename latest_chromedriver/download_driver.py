@@ -79,36 +79,64 @@ def _get_driver_filename():
     return None
 
 
+def _offset_max_scale_list(chrome_version, json_cft):
+    chrome_version_list = [int(x) for x in chrome_version.split('.')]
+    no_of_items = len(chrome_version_list)
+    min_version = chrome_version_list.copy()
+    max_version = chrome_version_list.copy()
+
+    for item in json_cft["versions"]:
+        item_version_list = [int(x) for x in item["version"].split('.')]
+        for i, value in enumerate(item_version_list):
+            min_version[i] = min(min_version[i], value)
+            max_version[i] = max(max_version[i], value)
+
+    version_size = [max_version[i]-min_version[i] for i in range(no_of_items)]
+    current_offset = [chrome_version_list[i]-min_version[i]
+                      for i in range(no_of_items)]
+
+    result = []
+    scale = 1
+    for i in reversed(range(no_of_items)):
+        item = (current_offset[i], version_size[i], scale)
+        scale *= version_size[i] + 1
+        result.insert(0, item)
+
+    return result
+
+
 def get_chromedriver_version_cft(chrome_version, platform_system):
     """Find which is the latest chromedriver using 
     the Chrome for Testing availability JSON endpoints."""
     selected_version = None
     selected_url = None
     chrome_version_list = [int(x) for x in chrome_version.split('.')]
-    max_version_size = max([len(x) for x in chrome_version.split('.')])
-    order_of_score = 10**max_version_size
-    #max_eligible_version = [-1 for _x in range(chrome_version_list)]
-    max_score = float('-inf')
+    max_score = -1
 
-    r = requests.get(CFT_JSON_ENDPOINT, timeout=HTTP_TIMEOUT)
-    data = r.json()
+    response = requests.get(CFT_JSON_ENDPOINT, timeout=HTTP_TIMEOUT)
+    data = response.json()
+
+    oms_list = _offset_max_scale_list(chrome_version, data)
+
     for item in data["versions"]:
         item_version_list = [int(x) for x in item["version"].split('.')]
 
         compatibility_score = 0
-        max_magnitude_size = len(chrome_version_list)
-        for i in range(max_magnitude_size):
-            magnitude_size = order_of_score**(max_magnitude_size - i)
-            if item_version_list[i] == chrome_version_list[i]:
-                compatibility_score += magnitude_size
-            elif item_version_list[i] < chrome_version_list[i]:
-                version_mismatch = int(
-                    (1.0 - (item_version_list[i]/chrome_version_list[i]))*magnitude_size)
-                compatibility_score += magnitude_size - version_mismatch
-            else:
-                compatibility_score -= magnitude_size
+        no_of_items = len(chrome_version_list)
+        temp_score = [0, 0, 0, 0]
+        for i in range(no_of_items):
+            diff = chrome_version_list[i] - item_version_list[i]
+            (offset, max_diff, scale) = oms_list[i]
 
-        if compatibility_score > max_score:
+            # If the version is newer is penalized.
+            # Newer version are getting behind older ones.
+            if diff < 0:
+                diff = offset - diff
+
+            temp_score[i] = max_diff - diff
+            compatibility_score += (max_diff - diff) * scale
+
+        if compatibility_score >= max_score:
             if "chromedriver" in item["downloads"]:
                 for download in item["downloads"]["chromedriver"]:
                     if download["platform"] == platform_system:
