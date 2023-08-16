@@ -16,7 +16,7 @@ from logzero import logger
 
 from . import chrome_info, enviroment, version
 
-CFT_JSON_ENDPOINT = "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json"
+CT = "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json"
 HTTP_TIMEOUT = 120
 
 
@@ -79,7 +79,7 @@ def _get_driver_filename():
     return None
 
 
-def _offset_max_scale_list(chrome_version, json_cft):
+def _get_scale_list(chrome_version, json_cft):
     chrome_version_list = [int(x) for x in chrome_version.split('.')]
     no_of_items = len(chrome_version_list)
     min_version = chrome_version_list.copy()
@@ -92,17 +92,25 @@ def _offset_max_scale_list(chrome_version, json_cft):
             max_version[i] = max(max_version[i], value)
 
     version_size = [max_version[i]-min_version[i] for i in range(no_of_items)]
-    current_offset = [chrome_version_list[i]-min_version[i]
-                      for i in range(no_of_items)]
 
     result = []
     scale = 1
     for i in reversed(range(no_of_items)):
-        item = (current_offset[i], version_size[i], scale)
+        result.insert(0, scale)
         scale *= version_size[i] + 1
-        result.insert(0, item)
 
     return result
+
+
+def _get_version_score(scale: list[int], cur_version: str):
+    chrome_version_list = [int(x) for x in cur_version.split('.')]
+    no_of_items = len(chrome_version_list)
+
+    score = 0
+    for i in range(no_of_items):
+        score += chrome_version_list[i] * scale[i]
+
+    return score
 
 
 def get_chromedriver_version_cft(chrome_version, platform_system):
@@ -110,37 +118,22 @@ def get_chromedriver_version_cft(chrome_version, platform_system):
     the Chrome for Testing availability JSON endpoints."""
     selected_version = None
     selected_url = None
-    chrome_version_list = [int(x) for x in chrome_version.split('.')]
     max_score = -1
 
-    response = requests.get(CFT_JSON_ENDPOINT, timeout=HTTP_TIMEOUT)
+    response = requests.get(CT, timeout=HTTP_TIMEOUT)
     data = response.json()
 
-    oms_list = _offset_max_scale_list(chrome_version, data)
+    scale = _get_scale_list(chrome_version, data)
+    target_score = _get_version_score(scale, chrome_version)
 
     for item in data["versions"]:
-        item_version_list = [int(x) for x in item["version"].split('.')]
+        item_score = _get_version_score(scale, item["version"])
 
-        compatibility_score = 0
-        no_of_items = len(chrome_version_list)
-        temp_score = [0, 0, 0, 0]
-        for i in range(no_of_items):
-            diff = chrome_version_list[i] - item_version_list[i]
-            (offset, max_diff, scale) = oms_list[i]
-
-            # If the version is newer is penalized.
-            # Newer version are getting behind older ones.
-            if diff < 0:
-                diff = offset - diff
-
-            temp_score[i] = max_diff - diff
-            compatibility_score += (max_diff - diff) * scale
-
-        if compatibility_score >= max_score:
+        if (item_score <= target_score) and (item_score >= max_score):
             if "chromedriver" in item["downloads"]:
                 for download in item["downloads"]["chromedriver"]:
                     if download["platform"] == platform_system:
-                        max_score = compatibility_score
+                        max_score = item_score
                         selected_version = item["version"]
                         selected_url = download["url"]
     logger.info("ChromeDriver version needed: %s", selected_version)
