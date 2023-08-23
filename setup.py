@@ -1,7 +1,7 @@
 import setuptools
 import datetime
 
-__version__ = '2023.08.16'
+__version__ = '2023.08.23'
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
