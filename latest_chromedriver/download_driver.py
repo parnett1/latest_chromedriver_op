@@ -16,7 +16,7 @@ from logzero import logger
 
 from . import chrome_info, enviroment, version
 
-CT = "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json"
+CT = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json"
 HTTP_TIMEOUT = 120
 
 
